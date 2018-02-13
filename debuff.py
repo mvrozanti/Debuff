@@ -1,4 +1,6 @@
 import requests
+import os
+import readline
 import sqlite3
 import re
 from bs4 import BeautifulSoup
@@ -23,9 +25,9 @@ def parse_hero_page(hero):
             and tag.has_attr('data-link-to'))
     for i in range(len(lines)):
         advtg = float(lines[i].find_all(lambda tag: tag.name == 'td')[2].text[:-1])
+        print(advtg)
         con.execute('INSERT OR REPLACE INTO HERO VALUES (?,?,?)',\
                 [hero, advtg, lines[i].get('data-link-to').replace('/heroes/','')])
-        if not i % len(heroes) - 2: con.commit() # do not trash rest of computer
     con.commit()
 
 def update_advantages():
@@ -40,5 +42,39 @@ def get_counters_for(heroes):
             GROUP BY name \
             ORDER BY s_adv ASC').fetchall()
 
-counters = get_counters_for(['invoker','leshrac','storm-spirit'])
-[print(c) for c in counters]
+
+
+class MyCompleter(object):  # Custom completer
+
+    def __init__(self, options):
+        self.options = sorted(options)
+
+    def complete(self, text, state):
+        if state == 0:  # on first trigger, build possible matches
+            if text:  # cache matches (entries that start with entered text)
+                self.matches = [s for s in self.options 
+                                    if s and s.startswith(text)]
+            else:  # no text entered, all matches possible
+                self.matches = self.options[:]
+
+        # return match indexed by state
+        try: 
+            return self.matches[state]
+        except IndexError:
+            return None
+
+#update_advantages()
+heroes = list_heroes()
+completer = MyCompleter(heroes)
+readline.set_completer(completer.complete)
+readline.parse_and_bind('tab: complete')
+heroes_to_counter = [] 
+
+while True:
+    hero_to_counter = input('Next hero:') 
+    if hero_to_counter in heroes: heroes_to_counter.append(hero_to_counter)
+    counters = get_counters_for(heroes_to_counter)
+    [print(c) for c in counters]
+    print('Are good against ', heroes_to_counter)
+
+
