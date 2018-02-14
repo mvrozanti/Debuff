@@ -12,7 +12,7 @@ from lxml import html
 signal.signal(signal.SIGINT, lambda x,y: print() or sys.exit(0))
 sess = requests.session()
 sess.headers.update({'User-Agent':'w3m/0.5.1'})
-con = sqlite3.connect('/home/nexor/.dotabuff.sqlite')
+con = sqlite3.connect('/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dotabuff.sqlite')
 con.execute('CREATE TABLE IF NOT EXISTS hero (`name` TEXT,`adv` REAL, `other` TEXT, PRIMARY KEY(name))')
 con.commit()
 
@@ -29,9 +29,10 @@ def parse_hero_page(hero):
         hero + '/matchups').text, 'lxml')
     lines = bs.find_all(lambda tag: tag.name == 'tr' \
             and tag.has_attr('data-link-to'))
+    print(hero)
     for i in range(len(lines)):
         advtg = float(lines[i].find_all(lambda tag: tag.name == 'td')[2].text[:-1])
-        con.execute('INSERT OR REPLACE INTO HERO VALUES (?,?,?)',\
+        con.execute('INSERT OR REPLACE INTO hero VALUES (?,?,?)',\
                 [hero, advtg, lines[i].get('data-link-to').replace('/heroes/','')])
     con.commit()
 
@@ -58,7 +59,7 @@ class MyCompleter(object):  # Custom completer
         try: return self.matches[state]
         except IndexError: return None
 parser = argparse.ArgumentParser()
-parser.add_argument('--u',action='store_true')
+parser.add_argument('-u',action='store_true')
 if parser.parse_args().u: update_advantages()
 heroes = list_heroes()
 readline.set_completer(MyCompleter(heroes).complete)
