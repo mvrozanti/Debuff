@@ -67,7 +67,7 @@ readline.parse_and_bind('tab: complete')
 heroes_to_counter = [] 
 
 while True:
-    hero_to_counter = input('Next hero:') 
+    hero_to_counter = input('Next hero: ') 
     if hero_to_counter in heroes: heroes_to_counter.append(hero_to_counter)
     counters = get_counters_for(heroes_to_counter)
     [print(c) for c in counters]
