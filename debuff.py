@@ -12,8 +12,8 @@ from lxml import html
 signal.signal(signal.SIGINT, lambda x,y: print() or sys.exit(0))
 sess = requests.session()
 sess.headers.update({'User-Agent':'w3m/0.5.1'})
-con = sqlite3.connect('/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dotabuff.sqlite')
-con.execute('CREATE TABLE IF NOT EXISTS hero (`name` TEXT,`adv` REAL, `other` TEXT, PRIMARY KEY(name))')
+SQLITE_DB_PATH = '/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dotabuff.sqlite'
+con = sqlite3.connect(SQLITE_DB_PATH)
 con.commit()
 
 def list_heroes():
@@ -58,8 +58,8 @@ class MyCompleter(object):  # Custom completer
         # return match indexed by state
         try: return self.matches[state]
         except IndexError: return None
-parser = argparse.ArgumentParser()
-parser.add_argument('-u',action='store_true')
+parser = argparse.ArgumentParser(description='Download best advantages for Dota 2 heroes matchups')
+parser.add_argument('-u',action='store_true', help='Update database first')
 if parser.parse_args().u: update_advantages()
 heroes = list_heroes()
 readline.set_completer(MyCompleter(heroes).complete)
