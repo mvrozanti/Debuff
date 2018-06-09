@@ -9,7 +9,7 @@ import re
 import sys
 from bs4 import BeautifulSoup
 from lxml import html
-signal.signal(signal.SIGINT, lambda x,y: print() or sys.exit(0))
+signal.signal(signal.SIGINT | signal.SIGKILL, lambda x,y: print() or sys.exit(0))
 sess = requests.session()
 sess.headers.update({'User-Agent':'w3m/0.5.1'})
 SQLITE_DB_PATH = '/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dotabuff.sqlite'
