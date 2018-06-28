@@ -58,7 +58,7 @@ class MyCompleter(object):  # Custom completer
         # return match indexed by state
         try: return self.matches[state]
         except IndexError: return None
-parser = argparse.ArgumentParser(description='Download best advantages for Dota 2 heroes matchups')
+parser = argparse.ArgumentParser(description='Calculate best advantages for Dota 2 heroes matchups')
 parser.add_argument('-u',action='store_true', help='Update database first')
 if parser.parse_args().u: update_advantages()
 heroes = list_heroes()
