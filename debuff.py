@@ -7,13 +7,16 @@ import readline
 import sqlite3
 import re
 import sys
+import inspect
 from bs4 import BeautifulSoup
 from lxml import html
 signal.signal(signal.SIGINT | signal.SIGKILL, lambda x,y: print() or sys.exit(0))
 sess = requests.session()
 sess.headers.update({'User-Agent':'w3m/0.5.1'})
-SQLITE_DB_PATH = '/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dotabuff.sqlite'
-con = sqlite3.connect(SQLITE_DB_PATH)
+script_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sqlite_db_path = os.path.join(script_directory, 'dotabuff.sqlite')
+con = sqlite3.connect(sqlite_db_path)
+con.execute('CREATE TABLE IF NOT EXISTS HERO (name text primary key, adv real, other text)')
 con.commit()
 
 def list_heroes():
@@ -46,7 +49,8 @@ def get_counters_for(heroes):
             WHERE other IN ' + hero_group + ' \
             AND name NOT IN ' + hero_group + ' \
             GROUP BY name \
-            ORDER BY s_adv ASC').fetchall()
+            ORDER BY s_adv DESC').fetchall()
+
 
 class MyCompleter(object):  # Custom completer
     def __init__(self, options):
