@@ -35,7 +35,7 @@ def parse_hero_page(hero):
     print(hero)
     for i in range(len(lines)):
         advtg = float(lines[i].find_all(lambda tag: tag.name == 'td')[2].text[:-1])
-        con.execute('INSERT OR REPLACE INTO hero VALUES (?,?,?)',\
+        con.execute('INSERT OR REPLACE INTO HERO VALUES (?,?,?)',\
                 [hero, advtg, lines[i].get('data-link-to').replace('/heroes/','')])
     con.commit()
 
@@ -51,7 +51,6 @@ def get_counters_for(heroes):
             GROUP BY name \
             ORDER BY s_adv DESC').fetchall()
 
-
 class MyCompleter(object):  # Custom completer
     def __init__(self, options):
         self.options = sorted(options)
@@ -62,6 +61,7 @@ class MyCompleter(object):  # Custom completer
         # return match indexed by state
         try: return self.matches[state]
         except IndexError: return None
+
 parser = argparse.ArgumentParser(description='Calculate best advantages for Dota 2 heroes matchups')
 parser.add_argument('-u',action='store_true', help='Update database first')
 if parser.parse_args().u: update_advantages()
