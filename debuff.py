@@ -14,7 +14,11 @@ sess = requests.session()
 sess.headers.update({'User-Agent':'w3m/0.5.1'})
 SQLITE_DB_PATH = '/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dotabuff.sqlite'
 con = sqlite3.connect(SQLITE_DB_PATH)
-con.execute('CREATE TABLE IF NOT EXISTS `HERO` (`name`  TEXT NOT NULL, `adv` REAL NOT NULL, `other` TEXT NOT NULL, PRIMARY KEY(name,other))')
+con.execute('CREATE TABLE IF NOT EXISTS `HERO` ( \
+        `name`  TEXT NOT NULL, \
+        `adv` REAL NOT NULL, \
+        `other` TEXT NOT NULL, \
+        PRIMARY KEY(name,other))')
 con.commit()
 
 def list_heroes():
@@ -35,7 +39,7 @@ def parse_hero_page(hero):
         advtg = float(lines[i].find_all(lambda tag: tag.name == 'td')[2].text[:-1])
         con.execute('INSERT OR REPLACE INTO hero VALUES (?,?,?)',\
                 [hero, advtg, lines[i].get('data-link-to').replace('/heroes/','')])
-    con.commit()
+        con.commit()
 
 def update_advantages():
     for h in list_heroes(): parse_hero_page(h)
@@ -49,16 +53,16 @@ def get_counters_for(heroes):
             GROUP BY name \
             ORDER BY s_adv DESC').fetchall()
 
-class MyCompleter(object):  # Custom completer
+class MyCompleter(object):                                                            # Custom completer
     def __init__(self, options):
         self.options = sorted(options)
     def complete(self, text, state):
-        if state == 0:  # on first trigger, build possible matches
+        if state == 0:                                                                    # on first trigger, build possible matches
             if text:  self.matches = [s for s in self.options if s and s.startswith(text)]# cache matches (entries that start with entered text)
-            else:  self.matches = self.options[:]# no text entered, all matches possible
-        # return match indexed by state
-        try: return self.matches[state]
+            else:  self.matches = self.options[:]                                         # no text entered, all matches possible
+        try: return self.matches[state]                                                   # return match indexed by state 
         except IndexError: return None
+
 parser = argparse.ArgumentParser(description='Calculate best advantages for Dota 2 heroes matchups')
 parser.add_argument('-u',action='store_true', help='Update database first')
 if parser.parse_args().u: update_advantages()
