@@ -12,11 +12,11 @@ import time
 import sys
 
 parser      = argparse.ArgumentParser(description='debuff v2')
-group       = parser.add_mutually_exclusive_group(required=True)
+group       = parser.add_mutually_exclusive_group(required=len(sys.argv) != 1)
 group.add_argument('-o', action='store_true', help='auto insert from oldest in record to oldest')
 group.add_argument('-n', action='store_true', help='auto insert from newest in record to newest')
 group.add_argument('-b', action='store_true', help='both [WIP]')
-group.add_argument('-q', action='store_true', help='query picks')
+group.add_argument('-q', action='store_true', default=len(sys.argv) == 1, help='query picks')
 parser.add_argument('-v', default=1, help='verbose')
 parser.add_argument('-c',metavar='request-count', type=int, default=1,help='amount of concurrent requests (default=2)')
 # parser.add_argument('-o',metavar='output-file',default='addresses.txt',help='file to output tested working ips')
