@@ -16,7 +16,7 @@ group.add_argument('-s', action='store_true', help='smart auto insert from oldes
 group.add_argument('-n', action='store_true', help='auto insert from newest in record to newest')
 group.add_argument('-b', action='store_true', help='both [WIP]')
 parser.add_argument('-v', action='store_true', help='verbose')
-# parser.add_argument('-n',metavar='request-count',default=50,help='amount of requests (default=50, 0=infinite)')
+parser.add_argument('-c',metavar='request-count', type=int, default=2,help='amount of concurrent requests (default=2)')
 # parser.add_argument('-o',metavar='output-file',default='addresses.txt',help='file to output tested working ips')
 parsed = parser.parse_args()
 
@@ -33,6 +33,7 @@ SQLITE_DB_PATH = '/mnt/4ADE1465DE144C17/gdrive/Programming/python/dotabuff/dota_
 con = sqlite3.connect(SQLITE_DB_PATH, check_same_thread=False)
 cur = con.cursor()
 
+lock = threading.Lock()
 con.execute('CREATE TABLE IF NOT EXISTS `match` ( \
         `match_id` INTEGER NOT NULL, \
         `radiant_win` BOOLEAN NOT NULL, \
@@ -43,6 +44,9 @@ con.commit()
 
 def get_tangent_match(newest=True):
     return con.execute('SELECT ' + ('MAX' if newest else 'MIN')  + '(match_id) FROM match').fetchone()[0]
+
+newest_match=get_tangent_match(newest=True)
+oldest_match=get_tangent_match(newest=False)
 
 def insert_match(match_id):
     try:
@@ -56,19 +60,25 @@ def insert_match(match_id):
         radiant_heroes = heroes[:5]
         radiant_win = match['radiant_win']
         for h in heroes:
-            cur.execute('INSERT INTO match VALUES (?,?,?,?)', \
+            cur.execute('INSERT OR IGNORE INTO match VALUES (?,?,?,?)', \
                     [match_id, radiant_win, h, h in radiant_heroes])
         con.commit()
         LOG.debug(str(match_id) + '\tOK') 
     except Exception as e:
         LOG.debug(str(match_id) + '\tFAILED')
 
-def scrape(incremental=True, target_match=0):
-    if not target_match:
-        target_match = get_tangent_match(newest=incremental)
-    target_match += 1 if incremental else -1
-    insert_match(target_match)
-    scrape(incremental=incremental, target_match=target_match)
+def scrape(incremental=True):
+    if incremental: 
+        global newest_match
+        newest_match += 1
+    else: 
+        global oldest_match
+        oldest_match -= 1
+    insert_match(newest_match if incremental else oldest_match)
+    scrape(incremental=incremental)
 
-if parsed.s or parsed.b: threading.Thread(target=scrape, kwargs=dict(incremental=False)).start()
-if parsed.n or parsed.b: threading.Thread(target=scrape, kwargs=dict(incremental=True)).start()
+if parsed.s or parsed.b: 
+    for _ in range(parsed.c//2): threading.Thread(target=scrape, kwargs=dict(incremental=False)).start()
+
+if parsed.n or parsed.b: 
+    for _ in range(parsed.c//2): threading.Thread(target=scrape, kwargs=dict(incremental=True)).start()
